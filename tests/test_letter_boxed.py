@@ -1,10 +1,12 @@
 """Test the functionality of letter_boxed.py"""
 
+from random import sample
+
 from hypothesis import given, strategies as st
 from pytest import raises
 
 
-from letter_boxed.letter_boxed import find_valid_words, Side  # type: ignore
+from letter_boxed.letter_boxed import find_valid_words, IllegalBoardError, Side  # type: ignore
 
 
 @given(...)
@@ -41,4 +43,18 @@ def test_find_valid_words_empty_dictionary(sides: list[Side]):
     words: list[str] = []
 
     with raises(StopIteration):
+        next(find_valid_words(words, sides))
+
+
+@given(
+    words=..., sides=st.lists(st.text(), min_size=2), repeated_character=st.characters()
+)
+def test_find_valid_words_with_shared_letters(
+    words: list[str], sides: list[Side], repeated_character: str
+):
+    """find_valid_words should raise an error if two or more sides share a letter."""
+    for idx in sample(range(len(sides)), 2):
+        sides[idx] = sides[idx] + repeated_character
+
+    with raises(IllegalBoardError):
         next(find_valid_words(words, sides))
