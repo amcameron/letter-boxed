@@ -1,12 +1,18 @@
 """Test the functionality of letter_boxed.py"""
 
+from itertools import pairwise
 from random import sample
 
-from hypothesis import given, strategies as st
+from hypothesis import assume, given, strategies as st
 from pytest import raises
 
 
-from letter_boxed.letter_boxed import find_valid_words, IllegalBoardError, Side  # type: ignore
+from letter_boxed.letter_boxed import (  # type: ignore
+    find_phrases,
+    find_valid_words,
+    IllegalBoardError,
+    Side,
+)
 
 
 @given(...)
@@ -58,3 +64,14 @@ def test_find_valid_words_with_shared_letters(
 
     with raises(IllegalBoardError):
         next(find_valid_words(words, sides))
+
+
+@given(...)
+def test_find_phrases_returns_legal_phrases(words: list[str], letters_to_cover: str):
+    """find_phrases should return legal phrases, i.e. ones where the last letter
+    of each word is the starting letter of the next word"""
+    assume(set(letters_to_cover) <= set(letter for word in words for letter in word))
+
+    for phrase in find_phrases(words, letters_to_cover):
+        for word, next_word in pairwise(phrase):
+            assert word[-1] == next_word[0]
