@@ -1,0 +1,39 @@
+[project]
+name = "letter-boxed"
+version = "0.1.0"
+description = "Solve the Letter Boxed game"
+requires-python = ">=3.13"
+dependencies = [
+    "pylint-pytest>=1.1.7",
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "hypothesis>=6.138.14",
+    "mypy>=1.17.1",
+    "pylint>=3.3.8",
+    "pylint-pytest>=1.1.7",
+    "pytest>=8.4.2",
+]
+
+[tool.pytest.ini_options]
+addopts = ["-ra", "-q"]
+testpaths = ["tests"]
+
+[tool.pylint]
+# List of plugins (as comma separated values of python module names) to load,
+# usually to register additional checkers.
+load-plugins = ["pylint_pytest"]
+
+# Add paths to the list of the source roots. Supports globbing patterns. The
+# source root is an absolute path or a path relative to the current working
+# directory used to determine a package namespace for modules located under the
+# source root.
+source-roots = ["src"]
+
+[tool.pylint.reports]
+# Template used to display messages. This is a python new-style format string
+# used to format the message information. See doc for all details.
+msg-template = "{path}:{line}:{column}:{C}:({symbol}){msg}"
+
