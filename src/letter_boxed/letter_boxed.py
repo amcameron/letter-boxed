@@ -1,7 +1,9 @@
 """Solve the Letter Boxed game."""
 
+type Side = str
 
-def find_valid_words(words: list[str], sides: list[list[str]]):
+
+def find_valid_words(words: list[str], sides: list[Side]):
     yield "word"
     # TODO: yield words which:
     #       - have at least 3 letters;
