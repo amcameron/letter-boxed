@@ -9,7 +9,7 @@ type Side = str
 
 
 class IllegalBoardError(Exception):
-    pass
+    """An error representing an illegal game configuration"""
 
 
 def _build_matcher(sides: list[Side]) -> Callable[[str], bool]:
@@ -52,7 +52,6 @@ def find_phrases(words: list[str], letters_to_cover: str, starting_letters=None)
 
     Consecutive words must share their neighbouring letters, e.g. THY > YES > SINCE"""
     # TODO
-    pass
 
 
 if __name__ == "__main__":
