@@ -8,11 +8,17 @@ from typing import Iterator
 type Side = str
 
 
+class IllegalBoardError(Exception):
+    pass
+
+
 def _build_matcher(sides: list[Side]) -> Callable[[str], bool]:
     """Build a predicate to decide whether a word can be spelled using the given sides."""
     valid_letters = "".join(sides)
-    assert valid_letters, "No non-empty sides were provided"
-    assert len(set(valid_letters)) == len(valid_letters), "Duplicate letters in sides"
+    if not valid_letters:
+        raise IllegalBoardError("No non-empty sides were provided: {sides=}")
+    if len(set(valid_letters)) != len(valid_letters):
+        raise IllegalBoardError(f"Duplicate letters: {sides=}")
 
     allowed_letters = re.compile(f"^[{re.escape(valid_letters)}]+$")
 
