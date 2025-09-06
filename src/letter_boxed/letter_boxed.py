@@ -47,11 +47,15 @@ def find_valid_words(words: list[str], sides: list[Side]) -> Iterator[str]:
             yield word
 
 
-def find_phrases(words: list[str], letters_to_cover: str, starting_letters=None):
+def find_phrases(
+    words: list[str], letters_to_cover: str, starting_letters: None | str = None
+) -> list[list[str]]:
     """Build phrases from the given words which "cover" the given letters.
 
     Consecutive words must share their neighbouring letters, e.g. THY > YES > SINCE"""
-    # TODO
+    if starting_letters is not None:
+        return [[starting_letters[0]]]
+    return []
 
 
 if __name__ == "__main__":
