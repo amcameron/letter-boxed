@@ -53,8 +53,13 @@ def find_phrases(
     """Build phrases from the given words which "cover" the given letters.
 
     Consecutive words must share their neighbouring letters, e.g. THY > YES > SINCE"""
-    if words and starting_letters:
-        yield [starting_letters[0] + letters_to_cover]
+    valid_starting_word_exists = not starting_letters or any(
+        word[0] in starting_letters for word in words
+    )
+    if not words or not valid_starting_word_exists:
+        return
+
+    yield [(starting_letters[0] if starting_letters else "") + letters_to_cover]
 
 
 if __name__ == "__main__":
