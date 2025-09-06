@@ -75,3 +75,13 @@ def test_find_phrases_returns_legal_phrases(words: list[str], letters_to_cover: 
     for phrase in find_phrases(words, letters_to_cover):
         for word, next_word in pairwise(phrase):
             assert word[-1] == next_word[0]
+
+
+@given(words=st.lists(st.text(min_size=1)), letters_to_cover=..., starting_letters=...)
+def test_find_phrases_covers_requested_letters(
+    words: list[str], letters_to_cover: str, starting_letters: None | str
+):
+    for phrase in find_phrases(words, letters_to_cover, starting_letters):
+        assert set(letters_to_cover) <= set(
+            letter for word in phrase for letter in word
+        )
