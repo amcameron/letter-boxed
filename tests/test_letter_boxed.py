@@ -85,3 +85,15 @@ def test_find_phrases_covers_requested_letters(
         assert set(letters_to_cover) <= set(
             letter for word in phrase for letter in word
         )
+
+
+@given(
+    words=st.lists(st.text(min_size=1)),
+    letters_to_cover=...,
+    starting_letters=st.text(min_size=1),
+)
+def test_find_phrases_starts_with_given_letter(
+    words: list[str], letters_to_cover: str, starting_letters: str
+):
+    for phrase in find_phrases(words, letters_to_cover, starting_letters):
+        assert phrase[0][0] in starting_letters
