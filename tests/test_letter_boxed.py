@@ -68,8 +68,7 @@ def test_find_valid_words_with_shared_letters(
 
 @given(...)
 def test_find_phrases_returns_legal_phrases(words: list[str], letters_to_cover: str):
-    """find_phrases should return legal phrases, i.e. ones where the last letter
-    of each word is the starting letter of the next word"""
+    """all find_phrases results begin each word with the final letter of the preceding word."""
     assume(set(letters_to_cover) <= set(letter for word in words for letter in word))
 
     for phrase in find_phrases(words, letters_to_cover):
@@ -81,10 +80,10 @@ def test_find_phrases_returns_legal_phrases(words: list[str], letters_to_cover: 
 def test_find_phrases_covers_requested_letters(
     words: list[str], letters_to_cover: str, starting_letters: None | str
 ):
+    """results from find_phrases should use each of the requested letters at least once."""
+    set_to_cover = frozenset(letters_to_cover)
     for phrase in find_phrases(words, letters_to_cover, starting_letters):
-        assert set(letters_to_cover) <= set(
-            letter for word in phrase for letter in word
-        )
+        assert set_to_cover <= set(letter for word in phrase for letter in word)
 
 
 @given(
@@ -95,5 +94,32 @@ def test_find_phrases_covers_requested_letters(
 def test_find_phrases_starts_with_given_letter(
     words: list[str], letters_to_cover: str, starting_letters: str
 ):
+    """the first word in every found phrase should begin with one of the requested letters."""
     for phrase in find_phrases(words, letters_to_cover, starting_letters):
         assert phrase[0][0] in starting_letters
+
+
+@given(
+    words=st.lists(st.text(min_size=1)),
+    letters_to_cover=...,
+    starting_letters=st.text(min_size=1),
+)
+def test_find_phrases_returns_known_words(
+    words: list[str], letters_to_cover: str, starting_letters: None | str
+):
+    """all words in every phrase returned by find_phrases should be in the set of valid words."""
+    for phrase in find_phrases(words, letters_to_cover, starting_letters):
+        for word in phrase:
+            assert word in words
+
+
+@given(
+    letters_to_cover=...,
+    starting_letters=st.text(min_size=1),
+)
+def test_find_phrases_empty_dict(letters_to_cover: str, starting_letters: None | str):
+    """find_phrases should not find anything if there are no valid words."""
+    words: list[str] = []
+
+    with raises(StopIteration):
+        next(find_phrases(words, letters_to_cover, starting_letters))
