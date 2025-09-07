@@ -66,7 +66,7 @@ def test_find_valid_words_with_shared_letters(
         next(find_valid_words(words, sides))
 
 
-@given(...)
+@given(words=st.lists(st.text(min_size=3)), letters_to_cover=...)
 def test_find_phrases_returns_legal_phrases(words: list[str], letters_to_cover: str):
     """all find_phrases results begin each word with the final letter of the preceding word."""
     assume(set(letters_to_cover) <= set(letter for word in words for letter in word))
