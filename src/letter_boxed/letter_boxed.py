@@ -2,6 +2,9 @@
 
 import re
 from collections.abc import Callable
+from dataclasses import dataclass
+from functools import cached_property
+from itertools import pairwise, permutations
 from typing import Iterator
 
 
@@ -10,6 +13,28 @@ type Side = str
 
 class IllegalBoardError(Exception):
     """An error representing an illegal game configuration"""
+
+
+@dataclass(frozen=True)
+class LetterBoxWord:
+    """Wrapper around str to provide utility properties."""
+
+    value: str
+
+    @cached_property
+    def letters(self):
+        """The set of letters in this word."""
+        return frozenset(self.value)
+
+    @property
+    def first(self):
+        """The first letter in this word."""
+        return self.value[0]
+
+    @property
+    def last(self):
+        """The last letter in this word."""
+        return self.value[-1]
 
 
 def _build_matcher(sides: list[Side]) -> Callable[[str], bool]:
@@ -23,12 +48,12 @@ def _build_matcher(sides: list[Side]) -> Callable[[str], bool]:
     allowed_letters = re.compile(f"^[{re.escape(valid_letters)}]+$")
 
     disallowed_repeats = [
-        re.compile(f"[{re.escape(side)}]{2,}") for side in sides if side
+        re.compile(f"[{re.escape(side)}]{{2,}}") for side in sides if side
     ]
 
     def predicate(word: str) -> bool:
         return bool(allowed_letters.match(word)) and not any(
-            repeated_side.match(word) for repeated_side in disallowed_repeats
+            repeated_side.search(word) for repeated_side in disallowed_repeats
         )
 
     return predicate
@@ -47,20 +72,69 @@ def find_valid_words(words: list[str], sides: list[Side]) -> Iterator[str]:
             yield word
 
 
+def _generate_phrases(
+    words: frozenset[LetterBoxWord],
+    desired_length: int,
+    starting_word: LetterBoxWord,
+) -> Iterator[list[LetterBoxWord]]:
+    if desired_length == 0:
+        return
+    phrase = [starting_word]
+    if desired_length == 1:
+        yield phrase
+        return
+    for perm in permutations(words - {starting_word}, desired_length - 1):
+        if starting_word.last != perm[0].first:
+            continue
+        if any(p[0].last != p[1].first for p in pairwise(perm)):
+            continue
+        yield phrase + list(perm)
+
+
 def find_phrases(
     words: list[str], letters_to_cover: str, starting_letters: None | str = None
 ) -> Iterator[list[str]]:
     """Build phrases from the given words which "cover" the given letters.
 
     Consecutive words must share their neighbouring letters, e.g. THY > YES > SINCE"""
-    valid_starting_word_exists = not starting_letters or any(
-        word[0] in starting_letters for word in words
-    )
-    if not words or not valid_starting_word_exists:
+
+    def _starts(word: LetterBoxWord) -> bool:
+        return not starting_letters or word.value[0] in starting_letters
+
+    words_copy = frozenset(LetterBoxWord(word) for word in words)
+    starting_words = frozenset(word for word in words_copy if _starts(word))
+    if not starting_words:
         return
 
-    yield [(starting_letters[0] if starting_letters else "") + letters_to_cover]
+    set_to_cover = frozenset(letters_to_cover)
+
+    phrase_length = 0
+    while phrase_length < len(words):
+        phrase_length += 1
+        found_any_phrase = False
+        for word in starting_words:
+            for phrase in _generate_phrases(words_copy, phrase_length, word):
+                # Only return phrases which require EVERY word to achieve coverage.
+                # (Any shorter phrase which works can be vacuously made longer by appending words.)
+                if set_to_cover <= set(
+                    letter for word in phrase[:-1] for letter in word.letters
+                ):
+                    continue
+                found_any_phrase = True
+                if set_to_cover <= set(
+                    letter for word in phrase for letter in word.letters
+                ):
+                    yield [w.value for w in phrase]
+
+        if not found_any_phrase:
+            break
 
 
 if __name__ == "__main__":
-    print("hello world")
+    with open("/usr/share/dict/words", "r", encoding="utf-8") as f:
+        dictionary_words = [l.strip() for l in f if len(l.strip()) >= 3]
+
+    _sides = ["wvt", "for", "eld", "aig"]
+    _valid_words = list(find_valid_words(dictionary_words, _sides))
+    _phrases = find_phrases(_valid_words, "".join(_sides))
+    print(next(_phrases))
