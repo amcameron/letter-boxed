@@ -123,3 +123,10 @@ def test_find_phrases_empty_dict(letters_to_cover: str, starting_letters: None |
 
     with raises(StopIteration):
         next(find_phrases(words, letters_to_cover, starting_letters))
+
+
+def test_find_phrases_on_pangram():
+    """find_phrases should find at least one phrase for the given example."""
+    words = "abcdefghijklm mnopqrstuvwxyz abc".split()
+    coverage = "".join(frozenset(letter for word in words for letter in word))
+    next(find_phrases(words, coverage))
