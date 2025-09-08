@@ -4,7 +4,6 @@ import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cached_property
-from itertools import pairwise, permutations
 from typing import Iterator
 
 
@@ -80,15 +79,32 @@ def _generate_phrases(
     if desired_length == 0:
         return
     phrase = [starting_word]
-    if desired_length == 1:
+    visited: list[set[LetterBoxWord]] = [set() for _ in range(desired_length)]
+    visited[0].update(words)  # Only allowed to use the given word.
+    while True:
+        while len(phrase) < desired_length:
+            if not phrase:
+                return
+            phrase_idx = len(phrase)
+            next_start = phrase[-1].last
+            next_word = next(
+                (
+                    w
+                    for w in words
+                    if w.first == next_start
+                    and w not in phrase
+                    and w not in visited[phrase_idx]
+                ),
+                None,
+            )
+            if next_word is None:
+                visited[phrase_idx].clear()
+                phrase.pop()
+                continue
+            phrase.append(next_word)
+            visited[phrase_idx].add(next_word)
         yield phrase
-        return
-    for perm in permutations(words - {starting_word}, desired_length - 1):
-        if starting_word.last != perm[0].first:
-            continue
-        if any(p[0].last != p[1].first for p in pairwise(perm)):
-            continue
-        yield phrase + list(perm)
+        phrase.pop()
 
 
 def find_phrases(
