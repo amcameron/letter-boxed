@@ -147,10 +147,17 @@ def find_phrases(
 
 
 if __name__ == "__main__":
+    import sys
+
     with open("/usr/share/dict/words", "r", encoding="utf-8") as f:
         dictionary_words = [l.strip() for l in f if len(l.strip()) >= 3]
 
-    _sides = ["wvt", "for", "eld", "aig"]
+    _sides = sys.argv[1:]
     _valid_words = list(find_valid_words(dictionary_words, _sides))
     _phrases = find_phrases(_valid_words, "".join(_sides))
-    print(next(_phrases))
+
+    _count: int = 0
+    while _count < 500:
+        _p = next(_phrases)
+        print(" ".join(_p))
+        _count += 1
